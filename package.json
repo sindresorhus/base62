@@ -1,6 +1,6 @@
 {
 	"name": "@sindresorhus/base62",
-	"version": "0.0.0",
+	"version": "0.1.0",
 	"description": "Encode & decode strings, bytes, and integers to Base62",
 	"license": "MIT",
 	"repository": "sindresorhus/base62",
