@@ -1,5 +1,5 @@
 import test from 'ava';
-import base62 from './index.js';
+import base62, {Base62} from './index.js';
 
 test('encodeBytes / decodeBytes - round-trip', t => {
 	const input = new Uint8Array([10, 20, 30, 40, 255]);
@@ -97,4 +97,78 @@ test('encodeBigInt - handles very large BigInts', t => {
 		const decoded = base62.decodeBigInt(encoded);
 		t.is(decoded, input);
 	}
+});
+
+// Custom alphabet tests
+test('Base62 constructor - validates alphabet length', t => {
+	const shortAlphabet = '0123456789';
+	const longAlphabet = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz123';
+
+	t.throws(() => new Base62({alphabet: shortAlphabet}), {
+		instanceOf: TypeError,
+		message: 'The alphabet must be exactly 62 characters long, got 10.',
+	});
+
+	t.throws(() => new Base62({alphabet: longAlphabet}), {
+		instanceOf: TypeError,
+		message: 'The alphabet must be exactly 62 characters long, got 65.',
+	});
+});
+
+test('Base62 constructor - validates alphabet uniqueness', t => {
+	const duplicateAlphabet = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxy0';
+
+	t.throws(() => new Base62({alphabet: duplicateAlphabet}), {
+		instanceOf: TypeError,
+		message: 'The alphabet must contain 62 unique characters, got 61.',
+	});
+});
+
+test('Base62 - custom alphabet round-trip', t => {
+	const customAlphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+	const customBase62 = new Base62({alphabet: customAlphabet});
+
+	// Test integers
+	const integer = 1337;
+	const encodedInteger = customBase62.encodeInteger(integer);
+	t.is(customBase62.decodeInteger(encodedInteger), integer);
+
+	// Test strings
+	const string = 'Hello, 🦄!';
+	const encodedString = customBase62.encodeString(string);
+	t.is(customBase62.decodeString(encodedString), string);
+
+	// Test bytes
+	const bytes = new Uint8Array([1, 2, 3, 255]);
+	const encodedBytes = customBase62.encodeBytes(bytes);
+	t.deepEqual(customBase62.decodeBytes(encodedBytes), bytes);
+
+	// Test bigints
+	const bigint = 123_456_789_012_345_678_901_234_567_890n;
+	const encodedBigInt = customBase62.encodeBigInt(bigint);
+	t.is(customBase62.decodeBigInt(encodedBigInt), bigint);
+});
+
+test('Base62 - default instance equals exported functions', t => {
+	const defaultBase62 = new Base62();
+
+	// Test that default instance produces same results as exported functions
+	t.is(defaultBase62.encodeInteger(1337), base62.encodeInteger(1337));
+	t.is(defaultBase62.decodeInteger('LZ'), base62.decodeInteger('LZ'));
+	t.is(defaultBase62.encodeString('test'), base62.encodeString('test'));
+});
+
+test('Base62 - invalid characters in decode throw errors', t => {
+	const base62Instance = new Base62();
+
+	// These characters are not in the default alphabet
+	t.throws(() => base62Instance.decodeInteger('!@'), {
+		instanceOf: TypeError,
+		message: 'Unexpected character for Base62 encoding: `!`.',
+	});
+
+	t.throws(() => base62Instance.decodeBigInt('#$'), {
+		instanceOf: TypeError,
+		message: 'Unexpected character for Base62 encoding: `#`.',
+	});
 });

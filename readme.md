@@ -17,7 +17,7 @@ import base62 from '@sindresorhus/base62';
 
 const encodedString = base62.encodeString('Hello world!');
 console.log(encodedString);
-//=> '8nlogx6nlNdJhVT24v'
+//=> '28B5ymDkgSU62aA0v'
 
 console.log(base62.decodeString(encodedString));
 //=> 'Hello world!'
@@ -73,3 +73,48 @@ Encodes a non-negative bigint to a Base62 string.
 ### `decodeBigInt(encodedString: string): bigint`
 
 Decodes a Base62 string to a bigint.
+
+### Custom alphabets
+
+You can use a custom alphabet by using the `Base62` class:
+
+```js
+import {Base62} from '@sindresorhus/base62';
+
+// Create instance with custom alphabet
+const customBase62 = new Base62({
+	alphabet: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+});
+
+console.log(customBase62.encodeInteger(1337));
+//=> 'Vj' (different from default 'LZ')
+
+// Or use special characters
+const symbolBase62 = new Base62({
+	alphabet: '!@#$%^&*()_+-=[]{}|;:,.<>?/~`0123456789ABCDEFGHIJKLMNOPQRSTUVW'
+});
+console.log(symbolBase62.encodeInteger(42));
+//=> 'D'
+```
+
+> [!NOTE]
+> The alphabet must be exactly 62 unique characters.
+
+### `Base62`
+
+#### `constructor(options?)`
+
+Create a new Base62 encoder/decoder instance.
+
+##### options
+
+Type: `object`
+
+###### alphabet
+
+Type: `string`\
+Default: `'0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'`
+
+Custom alphabet containing exactly 62 unique characters.
+
+The `Base62` class has the same methods as the exported functions: `encodeString()`, `decodeString()`, `encodeBytes()`, `decodeBytes()`, `encodeInteger()`, `decodeInteger()`, `encodeBigInt()`, and `decodeBigInt()`.
